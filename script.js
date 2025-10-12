@@ -1,5 +1,5 @@
 // PEGA AQUÍ DENTRO LA URL QUE TE DIO JSONBIN.IO
-const jsonBinUrl = 'https://api.jsonbin.io/v3/b/68eb7f41ae596e708f0f8a8a/latest'; 
+const jsonBinUrl = 'https://api.jsonbin.io/v3/b/68eb8032d0ea881f409ec5b0/latest'; 
 
 // Esperamos a que todo el contenido de la página se haya cargado
 document.addEventListener('DOMContentLoaded', () => {
