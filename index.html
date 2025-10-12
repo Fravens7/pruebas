@@ -51,7 +51,7 @@
 
     async function fetchNormal() {
       const { data, error } = await supabaseAnon
-        .from('clientes_publicos')
+        .from('global_clientes')
         .select('*');
 
       if(error) {
