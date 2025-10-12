@@ -1,72 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
-  <title>Panel Reclutador Seguro</title>
-  <style>
-    /* ... estilos iguales que antes ... */
-  </style>
+  <meta charset="UTF-8">
+  <title>Postulaciones (Vista Pública)</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
-  <h1>Panel de Reclutador (Login requerido)</h1>
-
-  <div id="login-form">
-    <input id="email" type="email" placeholder="Email" />
-    <input id="password" type="password" placeholder="Contraseña" />
-    <button id="btn-login">Ingresar</button>
-  </div>
-
-  <div id="panel" style="display:none;">
-    <button id="btn-logout">Cerrar sesión</button>
-    <table id="tabla-postulaciones">
-      <thead>
-        <tr>
-          <th>Posición</th>
-          <th>CV</th>
-          <th>Disponibilidad</th>
-          <th>Contacto</th>
-          <th>Experiencia</th>
-          <th>Estado</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </div>
+  <h1>Postulaciones</h1>
+  <table border="1" id="tabla">
+    <thead>
+      <tr>
+        <th>Posición</th>
+        <th>CV</th>
+        <th>Disponibilidad</th>
+        <th>Contacto</th>
+        <th>Experiencia</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
   <script>
-    const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';  // Solo la anon key aquí
-    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
-
-    const estados = ['Aún no visto', 'Revisado', 'Descartado'];
-
-    const loginForm = document.getElementById('login-form');
-    const panel = document.getElementById('panel');
-    const btnLogin = document.getElementById('btn-login');
-    const btnLogout = document.getElementById('btn-logout');
-
-    btnLogin.addEventListener('click', async () => {
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
-
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        alert('Error al iniciar sesión: ' + error.message);
-      } else {
-        loginForm.style.display = 'none';
-        panel.style.display = 'block';
-        cargarPostulaciones();
-      }
-    });
-
-    btnLogout.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      loginForm.style.display = 'block';
-      panel.style.display = 'none';
-      document.querySelector('#tabla-postulaciones tbody').innerHTML = '';
-    });
+    const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';  // reemplaza con el tuyo
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';  // usa la anon key
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function cargarPostulaciones() {
       const { data, error } = await supabase
@@ -75,63 +33,26 @@
         .order('hora_subida', { ascending: false });
 
       if (error) {
-        alert('Error al cargar postulaciones: ' + error.message);
+        console.error('Error al cargar datos:', error.message);
         return;
       }
 
-      const tbody = document.querySelector('#tabla-postulaciones tbody');
-      tbody.innerHTML = '';
-
-      data.forEach(postulacion => {
-        const tr = document.createElement('tr');
-
-        tr.innerHTML = `
-          <td>${postulacion.posicion}</td>
-          <td><a href="${postulacion.cv_url}" target="_blank">Ver CV</a></td>
-          <td>${postulacion.pregunta_1 || '-'}</td>
-          <td>${postulacion.pregunta_2 || '-'}</td>
-          <td>${postulacion.pregunta_3 || '-'}</td>
-          <td>
-            <select data-id="${postulacion.id}">
-              ${estados.map(estado => `
-                <option value="${estado}" ${estado === postulacion.estado_revision ? 'selected' : ''}>${estado}</option>
-              `).join('')}
-            </select>
-          </td>
+      const tbody = document.querySelector('#tabla tbody');
+      data.forEach(p => {
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+          <td>${p.posicion}</td>
+          <td>${p.cv_url ? `<a href="${p.cv_url}" target="_blank">Ver CV</a>` : '-'}</td>
+          <td>${p.pregunta_1 || '-'}</td>
+          <td>${p.pregunta_2 || '-'}</td>
+          <td>${p.pregunta_3 || '-'}</td>
+          <td>${p.estado_revision}</td>
         `;
-
-        tbody.appendChild(tr);
-      });
-
-      document.querySelectorAll('select[data-id]').forEach(select => {
-        select.addEventListener('change', async (e) => {
-          const id = e.target.dataset.id;
-          const nuevoEstado = e.target.value;
-
-          const { error } = await supabase
-            .from('postulaciones')
-            .update({ estado_revision: nuevoEstado })
-            .eq('id', id);
-
-          if (error) {
-            alert('Error al actualizar: ' + error.message);
-          } else {
-            e.target.classList.add('status-updated');
-            setTimeout(() => e.target.classList.remove('status-updated'), 1000);
-          }
-        });
+        tbody.appendChild(fila);
       });
     }
 
-    // Si el usuario ya está logueado, mostrar el panel
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        loginForm.style.display = 'none';
-        panel.style.display = 'block';
-        cargarPostulaciones();
-      }
-    });
+    cargarPostulaciones();
   </script>
-
 </body>
 </html>
