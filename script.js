@@ -4,27 +4,27 @@ const jsonBinUrl = 'https://api.jsonbin.io/v3/b/68eb808343b1c97be963d524/latest'
 // Esperamos a que todo el contenido de la página se haya cargado
 document.addEventListener('DOMContentLoaded', () => {
 
+  document.addEventListener('DOMContentLoaded', () => {
+
   async function cargarPostulaciones() {
     const tbody = document.querySelector('#tabla tbody');
     tbody.innerHTML = ''; // Limpiamos la tabla por si acaso
 
     try {
-      const response = await fetch(jsonBinUrl);
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-      
-      const jsonBinData = await response.json();
-      // JSONBin envuelve tus datos en un objeto llamado "record"
-      const datos = jsonBinData.record; 
+      // Cargamos el archivo JSON local
+      const response = await fetch('datos.json');
+      const data = await response.json();
 
-      if (!datos || datos.length === 0) {
+      if (data.length === 0) {
         tbody.innerHTML = `<tr><td colspan="6">No hay postulaciones para mostrar.</td></tr>`;
         return;
       }
 
-      datos.forEach(p => {
+      // Recorremos cada objeto en el array de datos
+      data.forEach(p => {
         const fila = document.createElement('tr');
+        
+        // Mapeamos los datos del JSON a las celdas de la tabla
         fila.innerHTML = `
           <td>${p.posicion}</td>
           <td>${p.cv_url ? `<a href="${p.cv_url}" target="_blank">Ver CV</a>` : '-'}</td>
@@ -33,16 +33,16 @@ document.addEventListener('DOMContentLoaded', () => {
           <td>${p.pregunta_3 || '-'}</td>
           <td>${p.estado_revision}</td>
         `;
+        
         tbody.appendChild(fila);
       });
 
     } catch (error) {
-      console.error('Error al cargar datos:', error);
+      console.error('Error al cargar los datos:', error);
       tbody.innerHTML = `<tr><td colspan="6">No se pudieron cargar los datos. Revisa la consola para más detalles.</td></tr>`;
     }
   }
 
   // Llamamos a la función para que se ejecute cuando la página esté lista
   cargarPostulaciones();
-
 });
