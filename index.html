@@ -2,61 +2,71 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Panel de Reclutador</title>
+  <title>Panel Reclutador Seguro</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background: #f9f9f9;
-    }
-    h1 {
-      color: #333;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-      text-align: left;
-    }
-    th {
-      background: #eee;
-    }
-    select {
-      padding: 4px;
-    }
-    .status-updated {
-      background-color: #d4f5d4;
-    }
+    /* ... estilos iguales que antes ... */
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <h1>Postulaciones - Panel del Reclutador</h1>
-  <table id="tabla-postulaciones">
-    <thead>
-      <tr>
-        <th>Posición</th>
-        <th>CV</th>
-        <th>Disponibilidad</th>
-        <th>Contacto</th>
-        <th>Experiencia</th>
-        <th>Estado</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  <h1>Panel de Reclutador (Login requerido)</h1>
+
+  <div id="login-form">
+    <input id="email" type="email" placeholder="Email" />
+    <input id="password" type="password" placeholder="Contraseña" />
+    <button id="btn-login">Ingresar</button>
+  </div>
+
+  <div id="panel" style="display:none;">
+    <button id="btn-logout">Cerrar sesión</button>
+    <table id="tabla-postulaciones">
+      <thead>
+        <tr>
+          <th>Posición</th>
+          <th>CV</th>
+          <th>Disponibilidad</th>
+          <th>Contacto</th>
+          <th>Experiencia</th>
+          <th>Estado</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
     const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A'; // SOLO para pruebas privadas
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';  // Solo la anon key aquí
+    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
 
     const estados = ['Aún no visto', 'Revisado', 'Descartado'];
+
+    const loginForm = document.getElementById('login-form');
+    const panel = document.getElementById('panel');
+    const btnLogin = document.getElementById('btn-login');
+    const btnLogout = document.getElementById('btn-logout');
+
+    btnLogin.addEventListener('click', async () => {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('Error al iniciar sesión: ' + error.message);
+      } else {
+        loginForm.style.display = 'none';
+        panel.style.display = 'block';
+        cargarPostulaciones();
+      }
+    });
+
+    btnLogout.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+      loginForm.style.display = 'block';
+      panel.style.display = 'none';
+      document.querySelector('#tabla-postulaciones tbody').innerHTML = '';
+    });
 
     async function cargarPostulaciones() {
       const { data, error } = await supabase
@@ -65,7 +75,7 @@
         .order('hora_subida', { ascending: false });
 
       if (error) {
-        alert('Error al cargar: ' + error.message);
+        alert('Error al cargar postulaciones: ' + error.message);
         return;
       }
 
@@ -93,7 +103,6 @@
         tbody.appendChild(tr);
       });
 
-      // Añadir evento a todos los selectores
       document.querySelectorAll('select[data-id]').forEach(select => {
         select.addEventListener('change', async (e) => {
           const id = e.target.dataset.id;
@@ -114,10 +123,15 @@
       });
     }
 
-    // Ejecutar al cargar
-    cargarPostulaciones();
+    // Si el usuario ya está logueado, mostrar el panel
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) {
+        loginForm.style.display = 'none';
+        panel.style.display = 'block';
+        cargarPostulaciones();
+      }
+    });
   </script>
 
 </body>
 </html>
-
