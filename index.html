@@ -2,83 +2,122 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Demo Supabase Clientes</title>
+  <title>Panel de Reclutador</title>
   <style>
-    body { font-family: Arial, sans-serif; padding: 20px; }
-    table { border-collapse: collapse; width: 100%; max-width: 600px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f4f4f4; }
-    button { margin: 10px 5px; padding: 10px 20px; }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f9f9f9;
+    }
+    h1 {
+      color: #333;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #eee;
+    }
+    select {
+      padding: 4px;
+    }
+    .status-updated {
+      background-color: #d4f5d4;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <h1>Clientes - Demo de roles</h1>
-  <button id="adminBtn">Modo Admin</button>
-  <button id="normalBtn">Modo Normal</button>
-
-  <table id="clientesTable">
+  <h1>Postulaciones - Panel del Reclutador</h1>
+  <table id="tabla-postulaciones">
     <thead>
-      <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Edad</th></tr>
+      <tr>
+        <th>Posición</th>
+        <th>CV</th>
+        <th>Disponibilidad</th>
+        <th>Contacto</th>
+        <th>Experiencia</th>
+        <th>Estado</th>
+      </tr>
     </thead>
     <tbody></tbody>
   </table>
 
   <script>
     const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A'; // clave pública (normal)
-    const supabaseAdminKey = 'sb_publishable_szN_1XYL0PUjMHxQpSiQFw_8f5c1It4'; // clave secreta (admin)
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTU5NTA1OSwiZXhwIjoyMDc1MTcxMDU5fQ.WW6jzNxl29BanSMFZWsBV4CrZWhtJwsOJEpGril8x0M'; // SOLO para pruebas privadas
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    const supabaseAnon = supabase.createClient(supabaseUrl, supabaseAnonKey);
-    const supabaseAdmin = supabase.createClient(supabaseUrl, supabaseAdminKey);
+    const estados = ['Aún no visto', 'Revisado', 'Descartado'];
 
-    const tbody = document.querySelector('#clientesTable tbody');
+    async function cargarPostulaciones() {
+      const { data, error } = await supabase
+        .from('postulaciones')
+        .select('*')
+        .order('hora_subida', { ascending: false });
 
-    async function fetchAdmin() {
-      const { data, error } = await supabaseAdmin
-        .from('clientes')
-        .select('*');
-
-      if(error) {
-        alert('Error admin: ' + error.message);
+      if (error) {
+        alert('Error al cargar: ' + error.message);
         return;
       }
 
-      renderTable(data);
-    }
-
-    async function fetchNormal() {
-      const { data, error } = await supabaseAnon
-        .from('global_clientes')
-        .select('*');
-
-      if(error) {
-        alert('Error normal: ' + error.message);
-        return;
-      }
-
-      renderTable(data);
-    }
-
-    function renderTable(data) {
+      const tbody = document.querySelector('#tabla-postulaciones tbody');
       tbody.innerHTML = '';
-      data.forEach(row => {
+
+      data.forEach(postulacion => {
         const tr = document.createElement('tr');
+
         tr.innerHTML = `
-          <td>${row.id}</td>
-          <td>${row.nombre || row.nombre_oculto || ''}</td>
-          <td>${row.email_enmascarado || row.email || ''}</td>
-          <td>${row.edad === null ? '-' : row.edad}</td>
+          <td>${postulacion.posicion}</td>
+          <td><a href="${postulacion.cv_url}" target="_blank">Ver CV</a></td>
+          <td>${postulacion.pregunta_1 || '-'}</td>
+          <td>${postulacion.pregunta_2 || '-'}</td>
+          <td>${postulacion.pregunta_3 || '-'}</td>
+          <td>
+            <select data-id="${postulacion.id}">
+              ${estados.map(estado => `
+                <option value="${estado}" ${estado === postulacion.estado_revision ? 'selected' : ''}>${estado}</option>
+              `).join('')}
+            </select>
+          </td>
         `;
+
         tbody.appendChild(tr);
+      });
+
+      // Añadir evento a todos los selectores
+      document.querySelectorAll('select[data-id]').forEach(select => {
+        select.addEventListener('change', async (e) => {
+          const id = e.target.dataset.id;
+          const nuevoEstado = e.target.value;
+
+          const { error } = await supabase
+            .from('postulaciones')
+            .update({ estado_revision: nuevoEstado })
+            .eq('id', id);
+
+          if (error) {
+            alert('Error al actualizar: ' + error.message);
+          } else {
+            e.target.classList.add('status-updated');
+            setTimeout(() => e.target.classList.remove('status-updated'), 1000);
+          }
+        });
       });
     }
 
-    document.getElementById('adminBtn').addEventListener('click', fetchAdmin);
-    document.getElementById('normalBtn').addEventListener('click', fetchNormal);
-
+    // Ejecutar al cargar
+    cargarPostulaciones();
   </script>
 
 </body>
 </html>
+
