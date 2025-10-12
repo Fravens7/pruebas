@@ -2,25 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Datos de Aplicantes</title>
+  <title>Applicants (Vista Pública)</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: sans-serif; margin: 30px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background-color: #f0f0f0; }
-    select { font-size: 16px; padding: 5px; }
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background-color: #f2f2f2;
+    }
+    a {
+      color: blue;
+    }
   </style>
 </head>
 <body>
-
-  <h1>Visualización de Datos</h1>
-  <label for="tablaSeleccionada">Selecciona tabla:</label>
-  <select id="tablaSeleccionada">
-    <option value="postulaciones">Postulaciones</option>
-    <option value="applicants">Applicants</option>
-  </select>
-
+  <h1>Lista de Aplicantes</h1>
   <table id="tabla">
     <thead>
       <tr>
@@ -37,22 +44,22 @@
 
   <script>
     const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
-    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';
 
-    const supabase = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-    async function cargarDatos(nombreTabla) {
+    async function cargarApplicants() {
       const { data, error } = await supabase
-        .from(nombreTabla)
+        .from('applicants')
         .select('*')
-        .order('hora_subida', { ascending: false });
+        .order('submission_time', { ascending: false });
 
       const tbody = document.querySelector('#tabla tbody');
       tbody.innerHTML = '';
 
       if (error) {
-        console.error('Error al cargar:', error.message);
-        tbody.innerHTML = `<tr><td colspan="6">Error: ${error.message}</td></tr>`;
+        console.error('Error:', error.message);
+        tbody.innerHTML = `<tr><td colspan="6">Error al cargar datos: ${error.message}</td></tr>`;
         return;
       }
 
@@ -64,24 +71,18 @@
       data.forEach(p => {
         const fila = document.createElement('tr');
         fila.innerHTML = `
-          <td>${p.posicion || p.position}</td>
+          <td>${p.position}</td>
           <td>${p.cv_url ? `<a href="${p.cv_url}" target="_blank">Ver CV</a>` : '-'}</td>
-          <td>${p.pregunta_1 || p.question_1 || '-'}</td>
-          <td>${p.pregunta_2 || p.question_2 || '-'}</td>
-          <td>${p.pregunta_3 || p.question_3 || '-'}</td>
-          <td>${p.estado_revision || p.review_status}</td>
+          <td>${p.question_1 || '-'}</td>
+          <td>${p.question_2 || '-'}</td>
+          <td>${p.question_3 || '-'}</td>
+          <td>${p.review_status}</td>
         `;
         tbody.appendChild(fila);
       });
     }
 
-    // Cargar tabla inicial
-    cargarDatos('postulaciones');
-
-    // Cambiar tabla al seleccionar otra
-    document.getElementById('tablaSeleccionada').addEventListener('change', (e) => {
-      cargarDatos(e.target.value);
-    });
+    cargarApplicants();
   </script>
 </body>
 </html>
