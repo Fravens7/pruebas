@@ -2,32 +2,19 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Applicants (Vista Pública)</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <title>Postulaciones (Vista Pública)</title>
+  <!-- Un poco de estilo para que se vea bien -->
   <style>
-    body {
-      font-family: sans-serif;
-      padding: 20px;
-    }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 20px;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-    th {
-      background-color: #f2f2f2;
-    }
-    a {
-      color: blue;
-    }
+    body { font-family: sans-serif; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
   </style>
 </head>
 <body>
-  <h1>Lista de Aplicantes</h1>
+  <h1>Postulaciones</h1>
+  
+  <!-- Esta es la tabla vacía que esperará los datos -->
   <table id="tabla">
     <thead>
       <tr>
@@ -39,50 +26,12 @@
         <th>Estado</th>
       </tr>
     </thead>
-    <tbody></tbody>
+    <tbody>
+      <!-- El JavaScript llenará esta parte -->
+    </tbody>
   </table>
 
-  <script>
-    const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';
-
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-    async function cargarApplicants() {
-      const { data, error } = await supabase
-        .from('applicants')
-        .select('*')
-        .order('submission_time', { ascending: false });
-
-      const tbody = document.querySelector('#tabla tbody');
-      tbody.innerHTML = '';
-
-      if (error) {
-        console.error('Error:', error.message);
-        tbody.innerHTML = `<tr><td colspan="6">Error al cargar datos: ${error.message}</td></tr>`;
-        return;
-      }
-
-      if (!data || data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6">No hay datos disponibles.</td></tr>`;
-        return;
-      }
-
-      data.forEach(p => {
-        const fila = document.createElement('tr');
-        fila.innerHTML = `
-          <td>${p.position}</td>
-          <td>${p.cv_url ? `<a href="${p.cv_url}" target="_blank">Ver CV</a>` : '-'}</td>
-          <td>${p.question_1 || '-'}</td>
-          <td>${p.question_2 || '-'}</td>
-          <td>${p.question_3 || '-'}</td>
-          <td>${p.review_status}</td>
-        `;
-        tbody.appendChild(fila);
-      });
-    }
-
-    cargarApplicants();
-  </script>
+  <!-- Aquí cargamos nuestro archivo JavaScript -->
+  <script src="script.js"></script>
 </body>
 </html>
