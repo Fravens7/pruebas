@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Demo Supabase Clientes</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; max-width: 600px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+    button { margin: 10px 5px; padding: 10px 20px; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <h1>Clientes - Demo de roles</h1>
+  <button id="adminBtn">Modo Admin</button>
+  <button id="normalBtn">Modo Normal</button>
+
+  <table id="clientesTable">
+    <thead>
+      <tr><th>ID</th><th>Nombre</th><th>Email</th><th>Edad</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const supabaseUrl = 'TU_SUPABASE_URL';
+    const supabaseAnonKey = 'TU_ANON_KEY'; // clave pública (normal)
+    const supabaseAdminKey = 'TU_SERVICE_ROLE_KEY'; // clave secreta (admin)
+
+    const supabaseAnon = supabase.createClient(supabaseUrl, supabaseAnonKey);
+    const supabaseAdmin = supabase.createClient(supabaseUrl, supabaseAdminKey);
+
+    const tbody = document.querySelector('#clientesTable tbody');
+
+    async function fetchAdmin() {
+      const { data, error } = await supabaseAdmin
+        .from('clientes')
+        .select('*');
+
+      if(error) {
+        alert('Error admin: ' + error.message);
+        return;
+      }
+
+      renderTable(data);
+    }
+
+    async function fetchNormal() {
+      const { data, error } = await supabaseAnon
+        .from('clientes_publicos')
+        .select('*');
+
+      if(error) {
+        alert('Error normal: ' + error.message);
+        return;
+      }
+
+      renderTable(data);
+    }
+
+    function renderTable(data) {
+      tbody.innerHTML = '';
+      data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${row.id}</td>
+          <td>${row.nombre || row.nombre_oculto || ''}</td>
+          <td>${row.email_enmascarado || row.email || ''}</td>
+          <td>${row.edad === null ? '-' : row.edad}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    document.getElementById('adminBtn').addEventListener('click', fetchAdmin);
+    document.getElementById('normalBtn').addEventListener('click', fetchNormal);
+
+  </script>
+
+</body>
+</html>
