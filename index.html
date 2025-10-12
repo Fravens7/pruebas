@@ -4,6 +4,12 @@
   <meta charset="UTF-8">
   <title>Postulaciones (Vista Pública)</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: sans-serif; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background-color: #f2f2f2; }
+  </style>
 </head>
 <body>
   <h1>Postulaciones</h1>
@@ -22,22 +28,38 @@
   </table>
 
   <script>
-    const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';  // reemplaza con el tuyo
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';  // usa la anon key
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseUrl = 'https://hxnikfmwknlxmkqcsrol.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4bmlrZm13a25seG1rcWNzcm9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk1OTUwNTksImV4cCI6MjA3NTE3MTA1OX0.G2b3hFEvpvOFpiFFk_a2os-7mFOgsZz6pj_YMihvv5A';
+    
+    // --- CORRECCIÓN AQUÍ ---
+    // Renombramos el cliente a 'supabaseClient' para evitar el conflicto
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
     async function cargarPostulaciones() {
-      const { data, error } = await supabase
+      // --- Y TAMBIÉN AQUÍ ---
+      // Usamos la nueva variable 'supabaseClient'
+      const { data, error } = await supabaseClient
         .from('postulaciones')
         .select('*')
         .order('hora_subida', { ascending: false });
 
+      const tbody = document.querySelector('#tabla tbody');
+      
+      // Limpiamos la tabla por si acaso
+      tbody.innerHTML = '';
+
       if (error) {
         console.error('Error al cargar datos:', error.message);
+        // Mostramos el error en la tabla para que sea visible
+        tbody.innerHTML = `<tr><td colspan="6">Error al cargar los datos: ${error.message}</td></tr>`;
         return;
       }
 
-      const tbody = document.querySelector('#tabla tbody');
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6">No hay postulaciones para mostrar.</td></tr>`;
+        return;
+      }
+
       data.forEach(p => {
         const fila = document.createElement('tr');
         fila.innerHTML = `
