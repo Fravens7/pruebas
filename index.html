@@ -3,65 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Carrusel Infinito Test</title>
-  <style>
-    body {
-      margin: 0;
-      background: #1a1a2e;
-      color: white;
-      font-family: 'Helvetica Neue', sans-serif;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      overflow: hidden;
-    }
-    h1, p { text-align: center; }
-    .carousel-container {
-      width: 300px;
-      height: 400px;
-      overflow: hidden; /* ¡Muy importante para ocultar los clones! */
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-    }
-    .carousel-track {
-      display: flex;
-      height: 100%;
-      transition: transform 0.5s ease-in-out;
-      cursor: grab;
-    }
-    .carousel-track.dragging {
-      cursor: grabbing;
-      transition: none;
-    }
-    .carousel-slide {
-      min-width: 300px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      background: rgba(255, 255, 255, 0.05);
-      user-select: none; /* Evita que se seleccione texto al arrastrar */
-    }
-    .carousel-slide img {
-      max-width: 80%;
-      max-height: 60%;
-      object-fit: contain;
-      margin-bottom: 20px;
-    }
-    .carousel-slide h3 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 300;
-    }
-  </style>
+  <title>Carrusel Arrastrable</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h1>AirPods Carousel - Test Infinito</h1>
-  <p>Arrastra con el ratón para navegar</p>
+  <h1>AirPods Carousel</h1>
+  <p>Arrastra con el ratón o el dedo para navegar</p>
 
   <div class="carousel-container">
     <div class="carousel-track">
@@ -84,100 +32,6 @@
     </div>
   </div>
 
-  <script>
-    // Esperamos a que todo el HTML se cargue antes de ejecutar el JS
-    document.addEventListener('DOMContentLoaded', () => {
-      
-      const track = document.querySelector('.carousel-track');
-      const slides = Array.from(track.children);
-      const slideWidth = slides[0].getBoundingClientRect().width;
-
-      let isDown = false;
-      let startX;
-      let currentTranslate;
-      let prevTranslate;
-      let animationID;
-
-      // --- LÓGICA DEL CARRUSEL INFINITO ---
-      const slidesFragment = document.createDocumentFragment();
-      slides.forEach(slide => slidesFragment.appendChild(slide.cloneNode(true)));
-      track.appendChild(slidesFragment);
-
-      const lastSlideClone = slides[slides.length - 1].cloneNode(true);
-      track.prepend(lastSlideClone);
-
-      const allSlides = Array.from(track.children);
-      const newSlideWidth = allSlides[0].getBoundingClientRect().width;
-
-      let currentIndex = 1;
-      currentTranslate = -newSlideWidth;
-      prevTranslate = currentTranslate;
-      setSliderPosition();
-
-      // --- FUNCIONES DE ARRastre ---
-      const startDrag = (e) => {
-        isDown = true;
-        track.classList.add('dragging');
-        startX = getPositionX(e);
-        currentTranslate = currentIndex * -newSlideWidth;
-        prevTranslate = currentTranslate;
-        cancelAnimationFrame(animationID);
-      };
-
-      const drag = (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const currentPosition = getPositionX(e);
-        const movedBy = currentPosition - startX;
-        currentTranslate = prevTranslate + movedBy;
-        setSliderPosition();
-      };
-
-      const endDrag = () => {
-        if (!isDown) return;
-        isDown = false;
-        track.classList.remove('dragging');
-        const movedBy = currentTranslate - prevTranslate;
-        if (movedBy < -100) currentIndex += 1;
-        if (movedBy > 100) currentIndex -= 1;
-
-        if (currentIndex === 0) {
-          track.style.transition = 'none';
-          currentTranslate = -(allSlides.length - 2) * newSlideWidth;
-          prevTranslate = currentTranslate;
-          currentIndex = allSlides.length - 2;
-          setSliderPosition();
-          setTimeout(() => { track.style.transition = 'transform 0.5s ease-in-out'; }, 50);
-        } else if (currentIndex === allSlides.length - 1) {
-          track.style.transition = 'none';
-          currentTranslate = -newSlideWidth;
-          prevTranslate = currentTranslate;
-          currentIndex = 1;
-          setSliderPosition();
-          setTimeout(() => { track.style.transition = 'transform 0.5s ease-in-out'; }, 50);
-        } else {
-          setPositionByIndex();
-        }
-      };
-
-      const getPositionX = (e) => e.type.includes('mouse') ? e.pageX : e.touches[0].clientX;
-      const setSliderPosition = () => { track.style.transform = `translateX(${currentTranslate}px)`; };
-      const setPositionByIndex = () => {
-        currentTranslate = currentIndex * -newSlideWidth;
-        prevTranslate = currentTranslate;
-        setSliderPosition();
-      };
-
-      // --- EVENT LISTENERS ---
-      track.addEventListener('mousedown', startDrag);
-      track.addEventListener('mousemove', drag);
-      track.addEventListener('mouseup', endDrag);
-      track.addEventListener('mouseleave', endDrag);
-      track.addEventListener('touchstart', startDrag);
-      track.addEventListener('touchmove', drag);
-      track.addEventListener('touchend', endDrag);
-      window.addEventListener('contextmenu', (e) => e.preventDefault());
-    });
-  </script>
+  <script src="script.js"></script>
 </body>
 </html>
