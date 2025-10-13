@@ -1,6 +1,6 @@
 body {
   margin: 0;
-  background: #1a1a2e; /* Fondo oscuro similar al del reel */
+  background: #1a1a2e;
   color: white;
   font-family: 'Helvetica Neue', sans-serif;
   display: flex;
@@ -8,66 +8,57 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  overflow: hidden;
+  overflow: hidden; /* Evita la barra de scroll en el body */
 }
 
-/* La escena 3D */
-.scene {
-  width: 200px;
-  height: 300px;
-  perspective: 600px; /* ¡La clave para la profundidad! */
+h1, p {
+  text-align: center;
 }
 
-/* El contenedor que rota */
-.carousel {
-  width: 100%;
-  height: 100%;
-  position: relative;
-  transform-style: preserve-3d; /* ¡Hace que los hijos sean 3D! */
-  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+.carousel-container {
+  width: 300px;
+  height: 400px;
+  perspective: 1000px; /* Útil si luego quieres añadir 3D */
 }
 
-/* Cada panel del carrusel */
-.carousel__panel {
-  position: absolute;
-  width: 200px;
-  height: 300px;
-  left: 10px;
-  top: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 15px;
+.carousel-track {
   display: flex;
+  height: 100%;
+  /* ¡La magia del arrastre suave está aquí! */
+  transition: transform 0.5s ease-in-out;
+  /* El cursor cambiará para indicar que se puede arrastrar */
+  cursor: grab;
+}
+
+/* Cuando estás arrastrando, el cursor cambia a "agarrando" */
+.carousel-track.dragging {
+  cursor: grabbing;
+  /* Quitamos la transición mientras se arrastra para que no se sienta "lento" */
+  transition: none;
+}
+
+.carousel-slide {
+  min-width: 300px; /* Cada slide ocupa el ancho del contenedor */
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  user-select: none; /* Evita que se seleccione texto al arrastrar */
+}
+
+.carousel-slide img {
+  max-width: 80%;
+  max-height: 60%;
+  object-fit: contain;
+  margin-bottom: 20px;
+}
+
+.carousel-slide h3 {
+  margin: 0;
   font-size: 1.5rem;
-  font-weight: bold;
-  backface-visibility: hidden; /* Evita que se vea el reverso de los paneles */
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-}
-
-/* Posicionamos cada panel en el espacio 3D */
-.carousel__panel:nth-child(1) { transform: rotateY(  0deg) translateZ(288px); }
-.carousel__panel:nth-child(2) { transform: rotateY( 90deg) translateZ(288px); }
-.carousel__panel:nth-child(3) { transform: rotateY(180deg) translateZ(288px); }
-.carousel__panel:nth-child(4) { transform: rotateY(-90deg) translateZ(288px); }
-
-.controls {
-  margin-top: 50px;
-}
-
-.controls button {
-  background: #f39c12;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  margin: 0 10px;
-  border-radius: 5px;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.controls button:hover {
-  background: #e67e22;
+  font-weight: 300;
 }
